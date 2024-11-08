@@ -13,7 +13,6 @@ documents = [
     "Web development involves building websites using HTML, CSS, and JavaScript."
 ]
 
-# Function to retrieve top K documents based on the query and feedback
 def retrieve_documents(query, k=3):
     vectorizer = TfidfVectorizer(stop_words='english')
     tfidf_matrix = vectorizer.fit_transform(documents + [query])
