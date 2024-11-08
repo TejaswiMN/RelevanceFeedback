@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# Sample collection of documents (for demo purposes)
+
 documents = [
     "Python is a programming language used for web development and data science.",
     "Java is a popular programming language that is widely used for building enterprise applications.",
@@ -87,7 +87,7 @@ class RelevanceFeedbackApp:
         self.doc_labels = []
         self.relevance_checkbuttons = []
 
-        # Retrieve top documents and display
+        
         top_docs = retrieve_documents(self.query, self.k)
         self.feedback = []
 
@@ -113,8 +113,6 @@ class RelevanceFeedbackApp:
         if not relevant_docs:
             messagebox.showwarning("Feedback Error", "Please select at least one relevant document.")
             return
-
-        # Update and display results based on feedback
         updated_docs = update_documents_with_feedback(self.query, relevant_docs, self.k)
         self.query = ' '.join(relevant_docs)
         self.display_updated_documents(updated_docs)
