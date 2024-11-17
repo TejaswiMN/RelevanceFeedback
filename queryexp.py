@@ -8,14 +8,12 @@ import threading
 import matplotlib.pyplot as plt
 
 # Retrieve documents from Arxiv API
-def retrieve_documents(query, k=5):
+def retrieve_documents(query, k=20):
     ARXIV_API_URL = "http://export.arxiv.org/api/query"
     params = {
         "search_query": f"all:{query}",
         "start": 0,
         "max_results": k
-        # "sortBy": "relevance",
-        # "sortOrder": "descending"
     }
     response = requests.get(ARXIV_API_URL, params=params)
     if response.status_code != 200:
@@ -30,8 +28,6 @@ def retrieve_documents(query, k=5):
         authors = [a.split("</name>")[0] for a in entry.split("<name>")[1:]]
         paper_text = f"{title}\nAuthors: {', '.join(authors)}\nSummary: {summary}"
         papers.append(paper_text)
-    
-    print(papers[:k])
     return papers[:k]
 
 # Function to process feedback and refine query
@@ -43,7 +39,7 @@ def update_documents_with_feedback(query, relevant_docs, k):
 class RelevanceFeedbackApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Enhanced Search Engine with Relevance Feedback")
+        self.root.title("With Query Expansion")
         self.root.geometry("800x900")
 
         # Main Frame
@@ -61,7 +57,7 @@ class RelevanceFeedbackApp:
         self.query_label.grid(row=0, column=0, sticky="w")
         self.query_entry = tk.Entry(query_frame, width=45, font=("Helvetica", 12))
         self.query_entry.grid(row=1, column=0, padx=5, pady=5)
-        self.query_entry.bind("<KeyRelease>", self.auto_complete)  # Bind auto-complete
+        self.query_entry.bind("<KeyRelease>")
 
         self.search_button = tk.Button(query_frame, text="Search", command=self.search_documents, font=("Helvetica", 12), bg="#4CAF50", fg="white")
         self.search_button.grid(row=1, column=1, padx=5)
@@ -81,10 +77,10 @@ class RelevanceFeedbackApp:
         self.page_num = 1
         self.pagination_frame = tk.Frame(main_frame, bg="#f2f2f2")
         self.pagination_frame.pack(pady=10)
-        # self.prev_button = tk.Button(self.pagination_frame, text="Previous", command=self.prev_page, state="disabled")
-        # self.prev_button.grid(row=0, column=0)
-        # self.next_button = tk.Button(self.pagination_frame, text="Next", command=self.next_page)
-        # self.next_button.grid(row=0, column=1)
+        self.prev_button = tk.Button(self.pagination_frame, text="Previous", command=self.prev_page, state="disabled")
+        self.prev_button.grid(row=0, column=0)
+        self.next_button = tk.Button(self.pagination_frame, text="Next", command=self.next_page)
+        self.next_button.grid(row=0, column=1)
 
         # Variables
         self.k = 5
@@ -164,35 +160,25 @@ class RelevanceFeedbackApp:
             messagebox.showwarning("Feedback Error", "Please select at least one relevant document.")
             return
         self.calculate_precision_recall(feedback)  # Calculate and store precision/recall
-        expanded_query = f"{self.query} {' '.join(relevant_docs)}"
-        updated_docs = update_documents_with_feedback(expanded_query, relevant_docs, self.k)
-        self.display_documents(expanded_query)
+        updated_docs = update_documents_with_feedback(self.query, relevant_docs, self.k)
+        self.display_documents(self.query)  # Update the displayed documents with the expanded query
 
     def calculate_precision_recall(self, feedback):
-        # Relevant documents marked by the user
         relevant_retrieved = sum(feedback)
-
-        # Total retrieved documents in the current session
         total_retrieved = len(feedback)
-
-        # Total relevant documents encountered over all rounds
         total_relevant = len(self.relevant_docs)
 
         precision = relevant_retrieved / total_retrieved if total_retrieved > 0 else 0
         recall = relevant_retrieved / total_relevant if total_relevant > 0 else 0
 
-        # Store precision and recall for plotting
         self.precision_list.append(precision)
         self.recall_list.append(recall)
-
-        print(f"Precision: {precision}, Recall: {recall}")  # Optional for debugging
 
     def plot_graph(self):
         if not self.precision_list or not self.recall_list:
             messagebox.showwarning("Graph Error", "No data to plot.")
             return
 
-        # Create a figure and plot precision and recall
         plt.figure(figsize=(10, 6))
         plt.plot(self.precision_list, label="Precision", color="blue", marker='o')
         plt.plot(self.recall_list, label="Recall", color="red", marker='x')
@@ -212,12 +198,18 @@ class RelevanceFeedbackApp:
         self.page_num += 1
         self.display_documents(self.query)
 
-    def auto_complete(self, event):
-        pass  # Implement auto-complete if needed
-
     def on_close(self):
+        if self.precision_list and self.recall_list:
+            plt.figure(figsize=(10, 6))
+            plt.plot(self.precision_list, label="Precision", color="blue", marker='o')
+            plt.plot(self.recall_list, label="Recall", color="red", marker='x')
+            plt.xlabel("Feedback Rounds")
+            plt.ylabel("Scores")
+            plt.title("Precision and Recall over Feedback Rounds")
+            plt.legend()
+            plt.grid(True)
+            plt.show()
         self.root.quit()
-
 
 # Run the application
 root = tk.Tk()
