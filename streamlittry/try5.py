@@ -178,7 +178,7 @@ class RetrievalSystem:
             []  # No non-relevant docs needed for query expansion
         )
 
-def calculate_increased_effectiveness(current_relevant, previous_relevant):
+def calculate_Improvement(current_relevant, previous_relevant):
     if previous_relevant == 0:  # To avoid division by zero
         return 0
     return (current_relevant - previous_relevant) / previous_relevant * 100
@@ -248,11 +248,11 @@ def main():
             st.session_state.relevant_counts.append(current_relevant_count)
             # print(st.session_state.relevant_counts)
             # print(current_relevant_count)
-            increased_effectiveness = calculate_increased_effectiveness(
+            improvement = calculate_Improvement(
                 current_relevant_count, 
                 st.session_state.prev_relevant_count
             )
-            print("increased effectiveness: ", increased_effectiveness)
+            print("improvement: ", improvement)
             st.session_state.prev_relevant_count = current_relevant_count
             
             relevance_scores = [1 if i in st.session_state.temp_relevant_indices else 0 
@@ -296,7 +296,7 @@ def main():
             
             # Display metrics and graph
             # if st.session_state.relevant_counts:
-            st.markdown(f"**Increased Effectiveness: {increased_effectiveness:.2f}**")
+            st.markdown(f"**Improvement Score: {improvement:.2f}**")
             st.markdown(f"**DCG Score: {dcg_score:.2f}**")
             
             # Plot the graph
