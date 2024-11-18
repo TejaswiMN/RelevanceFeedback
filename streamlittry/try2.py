@@ -41,7 +41,9 @@ def retrieve_documents(query, k=5):
     
     # Rank documents based on cosine similarity to the query
     ranked_docs = sorted(zip(docs, cosine_similarities), key=lambda x: x[1], reverse=True)
-    return ranked_docs[:k]
+    # return ranked_docs[:k]
+    return [(doc, score) for doc, score in ranked_docs[:k]]
+
 
 # Function to calculate precision and recall
 def calculate_precision_recall(feedback, relevant_docs):
@@ -58,15 +60,18 @@ def calculate_precision_recall(feedback, relevant_docs):
 def dcg_at_k(ranked_docs, ground_truth_docs, k=5):
     dcg = 0.0
     for i in range(min(k, len(ranked_docs))):
-        doc = ranked_docs[i][0]
-        relevance = 1 if doc in ground_truth_docs else 0
+        doc_title = ranked_docs[i][0][0]  # Extract just the title from the doc tuple
+        relevance = 1 if doc_title in ground_truth_docs else 0
         dcg += relevance / np.log2(i + 2)  # +2 to avoid division by zero
     return dcg
 
 # Function to calculate NDCG at rank k
 def ndcg_at_k(ranked_docs, ground_truth_docs, k=5):
     dcg = dcg_at_k(ranked_docs, ground_truth_docs, k)
-    ideal_ranking = sorted(ranked_docs, key=lambda x: x[0] in ground_truth_docs, reverse=True)
+    # For ideal ranking, we need to sort based on whether the document titles are in ground truth
+    ideal_ranking = sorted(ranked_docs, 
+                         key=lambda x: x[0][0] in ground_truth_docs, 
+                         reverse=True)
     idcg = dcg_at_k(ideal_ranking, ground_truth_docs, k)
     return dcg / idcg if idcg > 0 else 0
 
@@ -75,7 +80,8 @@ def calculate_average_precision(ranked_docs, ground_truth_docs):
     relevant_retrieved = 0
     total_precision = 0.0
     for i, (doc, _) in enumerate(ranked_docs, 1):
-        if doc in ground_truth_docs:
+        doc_title = doc[0]  # Extract just the title
+        if doc_title in ground_truth_docs:
             relevant_retrieved += 1
             precision_at_rank = relevant_retrieved / i
             total_precision += precision_at_rank
@@ -123,6 +129,7 @@ def main():
 
         # Collect ground truth document titles
         ground_truth_docs = {doc[0] for doc in docs_relevance_sorted}
+
 
         # Step 3: Display documents in a grid and collect feedback
         feedback = []
