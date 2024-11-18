@@ -128,8 +128,7 @@ def main():
         docs_relevance_sorted = retrieve_documents_by_relevance(query, k=5)
 
         # Collect ground truth document titles
-        ground_truth_docs = {doc[0] for doc in docs_relevance_sorted}
-
+        ground_truth_docs = {doc[0] for doc in docs_relevance_sorted}  # Store only titles
 
         # Step 3: Display documents in a grid and collect feedback
         feedback = []
@@ -156,9 +155,9 @@ def main():
 
         # Step 5: Update relevant document IDs and proceed to next round
         if st.button("Submit Feedback"):
-            selected_docs = [docs_custom[i][0] for i in range(len(feedback)) if feedback[i]]
+            selected_docs = [docs_custom[i][0][0] for i in range(len(feedback)) if feedback[i]]  # Store only titles
             if selected_docs:
-                st.session_state.relevant_doc_ids.update([doc for doc in selected_docs])
+                st.session_state.relevant_doc_ids.update(selected_docs)
                 st.session_state.feedback_round += 1
             else:
                 st.warning("Please select at least one relevant document.")
