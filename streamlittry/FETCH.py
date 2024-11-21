@@ -192,7 +192,9 @@ def calculate_dcg(relevance_scores, k=None):
 
 def main():
     st.set_page_config(layout="wide")
-    st.title("ArXiv Paper Retrieval System with Relevance Feedback")
+    st.title("FETCH")
+    st.markdown("### Feedback-Enhanced Textual Content Harvestor")
+    # st.markdown("ArXiv Paper Retrieval System with Relevance Feedback")
     
     # Initialize session state
     if "retrieval_system" not in st.session_state:
